@@ -1,0 +1,47 @@
+# Example terraform.tfvars file
+# Copy this to terraform.tfvars and customize for your environment
+# IMPORTANT: Add terraform.tfvars to .gitignore - never commit credentials!
+
+# Basic Configuration
+project_name = "purchase-tracker"
+environment  = "dev"
+aws_region   = "us-east-1"
+
+# Application Configuration
+app_name = "Purchase Tracker"
+# domain_name = "your-domain.com"  # Optional: uncomment for custom domain
+
+# Database Configuration (CHANGE THESE!)
+db_name     = "purchase_tracker"
+db_username = "ptadmin"
+db_password = "YourSecurePassword123!"  # CHANGE THIS TO A SECURE PASSWORD
+
+# S3 Configuration
+s3_bucket_name = "purchase-tracker-receipts-dev"  # Will have random suffix added
+
+# Cognito Configuration
+cognito_user_pool_name = "purchase-tracker-users"
+cognito_client_name    = "purchase-tracker-client"
+
+# Security Configuration
+allowed_origins = ["*"]  # Restrict in production: ["https://your-domain.com"]
+
+# Feature Flags
+enable_deletion_protection = false  # Set to true for production
+enable_multi_az           = false  # Keep false for free tier
+enable_backup             = true
+backup_retention_period   = 7
+
+# Monitoring
+enable_detailed_monitoring    = false  # Keep false for free tier
+cloudwatch_log_retention_days = 7
+
+# Tags
+tags = {
+  Project     = "PurchaseTracker"
+  Environment = "development"
+  ManagedBy   = "OpenTofu"
+  Owner       = "YourName"
+  Repository  = "purchase-tracker"
+  CostCenter  = "Development"
+}
