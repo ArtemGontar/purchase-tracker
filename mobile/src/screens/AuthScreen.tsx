@@ -78,183 +78,151 @@ export const AuthScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <View style={styles.container}>
+      {/* Header */}
+      <Animated.View 
+        entering={FadeInDown.delay(200)}
+        style={styles.header}
       >
-        {/* Header */}
-        <Animated.View 
-          entering={FadeInDown.delay(200).springify()}
-          style={styles.header}
-        >
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoIcon}>🧾</Text>
-            <Text size="3xl" weight="bold" style={styles.logoText}>
-              Receep
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoIcon}>🧾</Text>
+          <Text size="2xl" weight="bold" style={styles.logoText}>
+            Receep
+          </Text>
+        </View>
+        <Text variant="muted" size="default" style={styles.tagline}>
+          Track your receipts with ease
+        </Text>
+      </Animated.View>
+
+      {/* Auth Card */}
+      <Animated.View entering={FadeInUp.delay(400)} style={styles.authCardContainer}>
+        <Card style={styles.authCard}>
+          <CardContent style={styles.authContent}>
+            {/* Title */}
+            <View>
+              <Text size="lg" weight="bold" style={styles.authTitle}>
+                {isSignUp ? 'Create Account' : 'Welcome Back'}
+              </Text>
+              <Text variant="muted" size="sm" style={styles.authSubtitle}>
+                {isSignUp 
+                  ? 'Start tracking your receipts' 
+                  : 'Sign in to continue'
+                }
+              </Text>
+            </View>
+
+            {/* OAuth Buttons */}
+            <View style={styles.oauthSection}>
+              <Button
+                variant="outline"
+                onPress={handleGoogleAuth}
+                style={styles.googleButton}
+              >
+                <View style={styles.oauthButtonContent}>
+                  <Text style={styles.googleIcon}>G</Text>
+                  <Text weight="medium">Continue with Google</Text>
+                </View>
+              </Button>
+
+              <Button
+                onPress={handleAppleAuth}
+                style={styles.appleButton}
+              >
+                <View style={styles.oauthButtonContent}>
+                  <Ionicons name="logo-apple" size={18} color={colors.white} />
+                  <Text weight="medium" style={styles.appleButtonText}>
+                    Continue with Apple
+                  </Text>
+                </View>
+              </Button>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text variant="muted" size="xs" style={styles.dividerText}>
+                or
+              </Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Email Button */}
+            <Button
+              onPress={handleEmailAuth}
+              style={styles.emailButton}
+            >
+              <View style={styles.emailButtonContent}>
+                <Ionicons name="mail-outline" size={16} color={colors.white} />
+                <Text weight="medium" style={styles.emailButtonText}>
+                  {isSignUp ? 'Sign up with Email' : 'Sign in with Email'}
+                </Text>
+              </View>
+            </Button>
+
+            {/* Toggle Auth Mode */}
+            <View style={styles.toggleSection}>
+              <Text variant="muted" size="xs">
+                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+              </Text>
+              <TouchableOpacity 
+                onPress={toggleAuthMode}
+                style={styles.toggleButton}
+                activeOpacity={0.7}
+              >
+                <Text size="xs" weight="semibold" style={styles.toggleButtonText}>
+                  {isSignUp ? 'Sign In' : 'Sign Up'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </CardContent>
+        </Card>
+      </Animated.View>
+
+      {/* Features Preview */}
+      <Animated.View 
+        entering={FadeInUp.delay(600)}
+        style={styles.featuresSection}
+      >
+        <View style={styles.featureRow}>
+          <View style={styles.feature}>
+            <View style={styles.featureIcon}>
+              <Text style={styles.featureEmoji}>📸</Text>
+            </View>
+            <Text size="xs" weight="medium" style={styles.featureText}>
+              Scan Receipts
             </Text>
           </View>
-          <Text variant="muted" size="lg" style={styles.tagline}>
-            Track your receipts with ease
-          </Text>
-        </Animated.View>
 
-        {/* Auth Card */}
-        <Animated.View entering={FadeInUp.delay(400).springify()}>
-          <Card style={styles.authCard}>
-            <CardContent style={styles.authContent}>
-              {/* Title */}
-              <Animated.View entering={SlideInLeft.delay(600).springify()}>
-                <Text size="xl" weight="bold" style={styles.authTitle}>
-                  {isSignUp ? 'Create Account' : 'Welcome Back'}
-                </Text>
-                <Text variant="muted" style={styles.authSubtitle}>
-                  {isSignUp 
-                    ? 'Start tracking your receipts today' 
-                    : 'Sign in to continue to your account'
-                  }
-                </Text>
-              </Animated.View>
-
-              {/* OAuth Buttons */}
-              <Animated.View 
-                entering={SlideInRight.delay(700).springify()}
-                style={styles.oauthSection}
-              >
-                <Button
-                  variant="outline"
-                  onPress={handleGoogleAuth}
-                  style={styles.oauthButton}
-                >
-                  <View style={styles.oauthButtonContent}>
-                    <Text style={styles.googleIcon}>G</Text>
-                    <Text weight="medium">Continue with Google</Text>
-                  </View>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onPress={handleAppleAuth}
-                  style={styles.appleButton}
-                >
-                  <View style={styles.oauthButtonContent}>
-                    <Ionicons name="logo-apple" size={20} color={colors.white} />
-                    <Text weight="medium" style={styles.appleButtonText}>
-                      Continue with Apple
-                    </Text>
-                  </View>
-                </Button>
-              </Animated.View>
-
-              {/* Divider */}
-              <Animated.View 
-                entering={FadeInUp.delay(800).springify()}
-                style={styles.divider}
-              >
-                <View style={styles.dividerLine} />
-                <Text variant="muted" size="sm" style={styles.dividerText}>
-                  or
-                </Text>
-                <View style={styles.dividerLine} />
-              </Animated.View>
-
-              {/* Email Button */}
-              <Animated.View entering={SlideInLeft.delay(900).springify()}>
-                <Button
-                  onPress={handleEmailAuth}
-                  style={styles.emailButton}
-                >
-                  <View style={styles.emailButtonContent}>
-                    <Ionicons name="mail-outline" size={18} color={colors.white} />
-                    <Text weight="medium" style={styles.emailButtonText}>
-                      {isSignUp ? 'Sign up with Email' : 'Sign in with Email'}
-                    </Text>
-                  </View>
-                </Button>
-              </Animated.View>
-
-              {/* Toggle Auth Mode */}
-              <Animated.View 
-                entering={FadeInUp.delay(1000).springify()}
-                style={styles.toggleSection}
-              >
-                <Text variant="muted" size="sm">
-                  {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-                </Text>
-                <TouchableOpacity 
-                  onPress={toggleAuthMode}
-                  style={styles.toggleButton}
-                  activeOpacity={0.7}
-                >
-                  <Text size="sm" weight="semibold" style={styles.toggleButtonText}>
-                    {isSignUp ? 'Sign In' : 'Sign Up'}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
-            </CardContent>
-          </Card>
-        </Animated.View>
-
-        {/* Features Preview */}
-        <Animated.View 
-          entering={FadeInUp.delay(1100).springify()}
-          style={styles.featuresSection}
-        >
-          <View style={styles.featureRow}>
-            <Animated.View 
-              entering={SlideInLeft.delay(1200).springify()}
-              style={styles.feature}
-            >
-              <View style={styles.featureIcon}>
-                <Text>📸</Text>
-              </View>
-              <Text size="sm" weight="medium" style={styles.featureText}>
-                Scan Receipts
-              </Text>
-            </Animated.View>
-
-            <Animated.View 
-              entering={SlideInRight.delay(1300).springify()}
-              style={styles.feature}
-            >
-              <View style={styles.featureIcon}>
-                <Text>📊</Text>
-              </View>
-              <Text size="sm" weight="medium" style={styles.featureText}>
-                Track Expenses
-              </Text>
-            </Animated.View>
-
-            <Animated.View 
-              entering={SlideInLeft.delay(1400).springify()}
-              style={styles.feature}
-            >
-              <View style={styles.featureIcon}>
-                <Text>💾</Text>
-              </View>
-              <Text size="sm" weight="medium" style={styles.featureText}>
-                Auto Backup
-              </Text>
-            </Animated.View>
+          <View style={styles.feature}>
+            <View style={styles.featureIcon}>
+              <Text style={styles.featureEmoji}>📊</Text>
+            </View>
+            <Text size="xs" weight="medium" style={styles.featureText}>
+              Track Expenses
+            </Text>
           </View>
-        </Animated.View>
 
-        {/* Footer */}
-        <Animated.View 
-          entering={FadeInUp.delay(1500).springify()}
-          style={styles.footer}
-        >
-          <Text variant="muted" size="xs" style={styles.footerText}>
-            By continuing, you agree to our Terms & Privacy Policy
-          </Text>
-        </Animated.View>
-      </ScrollView>
+          <View style={styles.feature}>
+            <View style={styles.featureIcon}>
+              <Text style={styles.featureEmoji}>💾</Text>
+            </View>
+            <Text size="xs" weight="medium" style={styles.featureText}>
+              Auto Backup
+            </Text>
+          </View>
+        </View>
+      </Animated.View>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text variant="muted" size="xs" style={styles.footerText}>
+          By continuing, you agree to our Terms & Privacy Policy
+        </Text>
+      </View>
       
       <LoadingOverlay visible={isLoading} message={loadingMessage} />
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -262,38 +230,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   header: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing.lg,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   logoIcon: {
-    fontSize: 64,
-    marginBottom: spacing.sm,
+    fontSize: 48,
+    marginBottom: spacing.xs,
   },
   logoText: {
     color: colors.primary,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   tagline: {
     textAlign: 'center',
   },
+  authCardContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   authCard: {
-    marginBottom: spacing.xl,
     ...shadows.lg,
   },
   authContent: {
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   authTitle: {
     textAlign: 'center',
@@ -301,14 +269,17 @@ const styles = StyleSheet.create({
   },
   authSubtitle: {
     textAlign: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   oauthSection: {
-    gap: spacing.md,
-    marginBottom: spacing.xl,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
-  oauthButton: {
-    paddingVertical: spacing.md,
+  googleButton: {
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderWidth: 1,
   },
   oauthButtonContent: {
     flexDirection: 'row',
@@ -317,20 +288,20 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   googleIcon: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#4285F4',
     backgroundColor: colors.white,
-    borderRadius: 12,
-    width: 24,
-    height: 24,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 20,
   },
   appleButton: {
-    backgroundColor: colors.black,
-    borderColor: colors.black,
-    paddingVertical: spacing.md,
+    backgroundColor: '#1d1d1f',
+    borderColor: '#1d1d1f',
+    paddingVertical: spacing.sm,
   },
   appleButtonText: {
     color: colors.white,
@@ -338,7 +309,7 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   dividerLine: {
     flex: 1,
@@ -346,17 +317,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   dividerText: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
   emailButton: {
-    paddingVertical: spacing.md,
-    marginBottom: spacing.lg,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
   },
   emailButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   emailButtonText: {
     color: colors.white,
@@ -369,13 +340,13 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.xs,
   },
   toggleButtonText: {
     color: colors.primary,
   },
   featuresSection: {
-    marginBottom: spacing.xl,
+    paddingVertical: spacing.sm,
   },
   featureRow: {
     flexDirection: 'row',
@@ -387,23 +358,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featureIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  featureEmoji: {
+    fontSize: 16,
   },
   featureText: {
     textAlign: 'center',
   },
   footer: {
     alignItems: 'center',
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.sm,
   },
   footerText: {
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 16,
   },
 });

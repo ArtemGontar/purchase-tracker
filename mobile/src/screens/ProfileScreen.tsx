@@ -7,7 +7,7 @@ import {
   Alert,
   ScrollView
 } from 'react-native';
-import Animated, { FadeInUp, FadeInDown, SlideInRight } from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Text } from '../components/ui/text';
@@ -73,17 +73,14 @@ export const ProfileScreen: React.FC = () => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
       <Animated.View 
-        entering={FadeInDown.delay(200).springify()}
+        entering={FadeInUp.delay(100)}
         style={styles.profileSection}
       >
-        <Animated.View 
-          entering={FadeInUp.delay(400).springify()}
-          style={styles.avatar}
-        >
+        <View style={styles.avatar}>
           <Text size="2xl" weight="bold" style={styles.avatarText}>
             JD
           </Text>
-        </Animated.View>
+        </View>
         <Text size="xl" weight="bold" style={styles.userName}>
           John Doe
         </Text>
@@ -93,82 +90,74 @@ export const ProfileScreen: React.FC = () => {
       </Animated.View>
 
       {/* Settings Section */}
-      <Animated.View entering={FadeInUp.delay(600).springify()}>
+      <Animated.View entering={FadeInUp.delay(200)}>
         <Card style={styles.settingsCard}>
           <CardHeader>
             <Text size="lg" weight="semibold">Settings</Text>
           </CardHeader>
           <CardContent style={styles.settingsContent}>
-            <Animated.View entering={SlideInRight.delay(700).springify()}>
-              <TouchableOpacity 
-                style={styles.settingItem}
-                onPress={() => handleSettingPress('notifications')}
-                activeOpacity={0.7}
-              >
-                <Text size="default" style={styles.settingLabel}>
-                  Push Notifications
-                </Text>
-                <Switch
-                  value={notificationsEnabled}
-                  onValueChange={handleNotificationToggle}
-                  trackColor={{ false: colors.border, true: colors.primary }}
-                  thumbColor={colors.white}
-                  ios_backgroundColor={colors.border}
-                />
-              </TouchableOpacity>
-            </Animated.View>
+            <TouchableOpacity 
+              style={styles.settingItem}
+              onPress={() => handleSettingPress('notifications')}
+              activeOpacity={0.7}
+            >
+              <Text size="default" style={styles.settingLabel}>
+                Push Notifications
+              </Text>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={handleNotificationToggle}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.white}
+                ios_backgroundColor={colors.border}
+              />
+            </TouchableOpacity>
 
-            <Animated.View entering={SlideInRight.delay(800).springify()}>
-              <TouchableOpacity 
-                style={styles.settingItem} 
-                onPress={handleAbout}
-                activeOpacity={0.7}
-              >
-                <Text size="default" style={styles.settingLabel}>
-                  About
-                </Text>
-                <Text variant="muted" style={styles.settingValue}>
-                  v1.0.0
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+            <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={handleAbout}
+              activeOpacity={0.7}
+            >
+              <Text size="default" style={styles.settingLabel}>
+                About
+              </Text>
+              <Text variant="muted" style={styles.settingValue}>
+                v1.0.0
+              </Text>
+            </TouchableOpacity>
 
-            <Animated.View entering={SlideInRight.delay(900).springify()}>
-              <TouchableOpacity 
-                style={styles.settingItem} 
-                onPress={() => handleSettingPress('export')}
-                activeOpacity={0.7}
-              >
-                <Text size="default" style={styles.settingLabel}>
-                  Export Data
-                </Text>
-                <Text variant="muted" style={styles.settingArrow}>
-                  →
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+            <TouchableOpacity 
+              style={styles.settingItem} 
+              onPress={() => handleSettingPress('export')}
+              activeOpacity={0.7}
+            >
+              <Text size="default" style={styles.settingLabel}>
+                Export Data
+              </Text>
+              <Text variant="muted" style={styles.settingArrow}>
+                →
+              </Text>
+            </TouchableOpacity>
 
-            <Animated.View entering={SlideInRight.delay(1000).springify()}>
-              <TouchableOpacity 
-                style={[styles.settingItem, styles.lastSettingItem]} 
-                onPress={() => handleSettingPress('help')}
-                activeOpacity={0.7}
-              >
-                <Text size="default" style={styles.settingLabel}>
-                  Help & Support
-                </Text>
-                <Text variant="muted" style={styles.settingArrow}>
-                  →
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+            <TouchableOpacity 
+              style={[styles.settingItem, styles.lastSettingItem]} 
+              onPress={() => handleSettingPress('help')}
+              activeOpacity={0.7}
+            >
+              <Text size="default" style={styles.settingLabel}>
+                Help & Support
+              </Text>
+              <Text variant="muted" style={styles.settingArrow}>
+                →
+              </Text>
+            </TouchableOpacity>
           </CardContent>
         </Card>
       </Animated.View>
 
       {/* Actions Section */}
       <Animated.View 
-        entering={FadeInUp.delay(1100).springify()}
+        entering={FadeInUp.delay(300)}
         style={styles.actionsSection}
       >
         <Button
@@ -181,17 +170,14 @@ export const ProfileScreen: React.FC = () => {
       </Animated.View>
 
       {/* Footer */}
-      <Animated.View 
-        entering={FadeInUp.delay(1200).springify()}
-        style={styles.footer}
-      >
+      <View style={styles.footer}>
         <Text variant="muted" size="sm" style={styles.footerText}>
           Receep - Receipt Tracker
         </Text>
         <Text variant="muted" size="xs" style={styles.footerSubtext}>
           Made with ❤️ using React Native & Expo
         </Text>
-      </Animated.View>
+      </View>
     </ScrollView>
   );
 };
