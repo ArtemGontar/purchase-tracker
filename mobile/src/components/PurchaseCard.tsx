@@ -1,12 +1,36 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Purchase } from '../types';
+import { View, StyleSheet, Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import { Purchase, RootStackParamList } from '../types';
+import { Card, CardContent, CardHeader } from './ui/card';
+import { Text } from './ui/text';
+import { colors, spacing, shadows, borderRadius } from '../lib/utils';
+import { ReceepHaptics } from '../lib/haptics';
 
 interface PurchaseCardProps {
   purchase: Purchase;
 }
 
+type NavigationProp = StackNavigationProp<RootStackParamList>;
+
+const AnimatedCard = Animated.createAnimatedComponent(Card);
+
 export const PurchaseCard: React.FC<PurchaseCardProps> = ({ purchase }) => {
+  const scale = useSharedValue(1);
+  const navigation = useNavigation<NavigationProp>();
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -18,71 +42,132 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({ purchase }) => {
     });
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
+    ReceepHaptics.light();
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+  };
+
   const handlePress = () => {
-    const itemsList = purchase.items
-      .map(item => `${item.quantity}x ${item.name} - $${item.price.toFixed(2)}`)
-      .join('\n');
-    
-    Alert.alert(
-      `${purchase.storeName} - $${purchase.total.toFixed(2)}`,
-      `Date: ${formatDate(purchase.date)}\n\nItems:\n${itemsList}`,
-      [{ text: 'OK' }]
-    );
+    ReceepHaptics.medium();
+    // Navigate to receipt detail screen
+    navigation.navigate('ReceiptDetail', { purchase });
+  };
+
+  const getCategoryColor = (storeName: string) => {
+    // Simple category color assignment based on store name
+    const categories: Record<string, string> = {
+      'Target': colors.error,
+      'Starbucks': '#00704A', // Starbucks green
+      'Walmart': '#0071CE', // Walmart blue
+      'CVS': '#CC0000', // CVS red
+      'Apple Store': '#007AFF', // Apple blue
+    };
+    return categories[storeName] || colors.primary;
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <View style={styles.header}>
-        <Text style={styles.storeName}>{purchase.storeName}</Text>
-        <Text style={styles.total}>${purchase.total.toFixed(2)}</Text>
-      </View>
-      <Text style={styles.date}>{formatDate(purchase.date)}</Text>
-      <Text style={styles.itemCount}>
-        {purchase.items.length} item{purchase.items.length !== 1 ? 's' : ''}
-      </Text>
-    </TouchableOpacity>
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={handlePress}
+      style={styles.pressableContainer}
+    >
+      <AnimatedCard style={[styles.card, animatedStyle]} elevation="md">
+        <CardHeader style={styles.header}>
+          <View style={styles.headerRow}>
+            <View style={styles.storeInfo}>
+              <View style={[styles.categoryDot, { backgroundColor: getCategoryColor(purchase.storeName) }]} />
+              <Text size="lg" weight="semibold" style={styles.storeName}>
+                {purchase.storeName}
+              </Text>
+            </View>
+            <Text size="xl" weight="bold" style={styles.total}>
+              {formatCurrency(purchase.total)}
+            </Text>
+          </View>
+        </CardHeader>
+        
+        <CardContent style={styles.content}>
+          <View style={styles.detailsRow}>
+            <Text variant="muted" size="sm">
+              {formatDate(purchase.date)}
+            </Text>
+            <Text variant="muted" size="sm">
+              {purchase.items.length} item{purchase.items.length !== 1 ? 's' : ''}
+            </Text>
+          </View>
+          
+          {purchase.items.length > 0 && (
+            <View style={styles.itemsPreview}>
+              <Text variant="muted" size="sm" numberOfLines={1}>
+                {purchase.items.slice(0, 2).map(item => item.name).join(', ')}
+                {purchase.items.length > 2 && ` +${purchase.items.length - 2} more`}
+              </Text>
+            </View>
+          )}
+        </CardContent>
+      </AnimatedCard>
+    </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
+  pressableContainer: {
+    marginHorizontal: spacing.md,
+    marginVertical: spacing.xs,
+  },
   card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: colors.card,
+    overflow: 'hidden',
   },
   header: {
+    paddingBottom: spacing.xs,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+  },
+  storeInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  categoryDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: spacing.sm,
   },
   storeName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    color: colors.text,
+    flex: 1,
   },
   total: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2196F3',
+    color: colors.primary,
+    marginLeft: spacing.sm,
   },
-  date: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
+  content: {
+    paddingTop: 0,
   },
-  itemCount: {
-    fontSize: 12,
-    color: '#999',
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  itemsPreview: {
+    marginTop: spacing.xs,
   },
 });

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { CameraView } from '../components/CameraView';
 import { addPurchase } from '../services/mockData';
 import { Purchase } from '../types';
+import { colors } from '../lib/utils';
+import { ReceepHaptics } from '../lib/haptics';
 
 export const ScanScreen: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,12 +41,17 @@ export const ScanScreen: React.FC = () => {
   const handleTakePhoto = async () => {
     if (isProcessing) return;
 
+    // Provide immediate haptic feedback
+    ReceepHaptics.medium();
     setIsProcessing(true);
 
     try {
       // Simulate photo processing and OCR
       const mockReceipt = generateMockReceipt();
       const newPurchase = await addPurchase(mockReceipt);
+
+      // Success haptic feedback
+      ReceepHaptics.success();
 
       Alert.alert(
         'Receipt Saved! 🎉',
@@ -52,6 +60,7 @@ export const ScanScreen: React.FC = () => {
           {
             text: 'View Details',
             onPress: () => {
+              ReceepHaptics.light();
               const itemsList = newPurchase.items
                 .map(item => `${item.quantity}x ${item.name} - $${item.price.toFixed(2)}`)
                 .join('\n');
@@ -59,18 +68,27 @@ export const ScanScreen: React.FC = () => {
               Alert.alert(
                 `${newPurchase.storeName} - $${newPurchase.total.toFixed(2)}`,
                 `Items:\n${itemsList}`,
-                [{ text: 'OK' }]
+                [{ text: 'OK', onPress: () => ReceepHaptics.light() }]
               );
             }
           },
-          { text: 'OK' }
+          { 
+            text: 'OK',
+            onPress: () => ReceepHaptics.light()
+          }
         ]
       );
     } catch (error) {
+      // Error haptic feedback
+      ReceepHaptics.error();
+      
       Alert.alert(
         'Error',
         'Failed to process receipt. Please try again.',
-        [{ text: 'OK' }]
+        [{ 
+          text: 'OK',
+          onPress: () => ReceepHaptics.light()
+        }]
       );
     } finally {
       setIsProcessing(false);
@@ -78,14 +96,18 @@ export const ScanScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <Animated.View 
+      entering={FadeIn.springify()}
+      style={styles.container}
+    >
       <CameraView onTakePhoto={handleTakePhoto} isLoading={isProcessing} />
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
 });

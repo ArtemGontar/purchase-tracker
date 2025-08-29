@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
-  Text, 
   StyleSheet, 
   FlatList, 
   RefreshControl, 
   ActivityIndicator 
 } from 'react-native';
+import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { PurchaseCard } from '../components/PurchaseCard';
+import { Text } from '../components/ui/text';
 import { Purchase } from '../types';
 import { fetchPurchases } from '../services/mockData';
+import { colors, spacing } from '../lib/utils';
+import { ReceepHaptics } from '../lib/haptics';
 
 export const HomeScreen: React.FC = () => {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -20,8 +23,10 @@ export const HomeScreen: React.FC = () => {
     try {
       const data = await fetchPurchases();
       setPurchases(data);
+      ReceepHaptics.success();
     } catch (error) {
       console.error('Error loading purchases:', error);
+      ReceepHaptics.error();
     } finally {
       setIsLoading(false);
     }
@@ -29,6 +34,7 @@ export const HomeScreen: React.FC = () => {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    ReceepHaptics.light();
     await loadPurchases();
     setIsRefreshing(false);
   }, [loadPurchases]);
@@ -38,24 +44,38 @@ export const HomeScreen: React.FC = () => {
   }, [loadPurchases]);
 
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
+    <Animated.View 
+      entering={FadeInUp.delay(300).springify()}
+      style={styles.emptyState}
+    >
       <Text style={styles.emptyStateIcon}>🧾</Text>
-      <Text style={styles.emptyStateTitle}>No purchases yet</Text>
-      <Text style={styles.emptyStateSubtitle}>
-        Start by scanning your first receipt!
+      <Text size="3xl" weight="bold" style={styles.emptyStateTitle}>
+        No receipts yet
       </Text>
-    </View>
+      <Text variant="muted" style={styles.emptyStateSubtitle}>
+        Start by scanning your first receipt using the camera tab!
+      </Text>
+    </Animated.View>
   );
 
-  const renderPurchase = ({ item }: { item: Purchase }) => (
-    <PurchaseCard purchase={item} />
+  const renderPurchase = ({ item, index }: { item: Purchase; index: number }) => (
+    <Animated.View entering={FadeInUp.delay(index * 100).springify()}>
+      <PurchaseCard purchase={item} />
+    </Animated.View>
   );
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
-        <Text style={styles.loadingText}>Loading purchases...</Text>
+        <Animated.View 
+          entering={FadeInDown.springify()}
+          style={styles.loadingContent}
+        >
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text variant="muted" style={styles.loadingText}>
+            Loading your receipts...
+          </Text>
+        </Animated.View>
       </View>
     );
   }
@@ -68,11 +88,14 @@ export const HomeScreen: React.FC = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={purchases.length === 0 ? styles.emptyContainer : styles.listContainer}
         ListEmptyComponent={renderEmptyState}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={['#2196F3']}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressBackgroundColor={colors.background}
           />
         }
       />
@@ -83,21 +106,22 @@ export const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
+  },
+  loadingContent: {
+    alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
+    marginTop: spacing.md,
   },
   listContainer: {
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
   },
   emptyContainer: {
     flex: 1,
@@ -105,22 +129,17 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: spacing.xl,
   },
   emptyStateIcon: {
     fontSize: 64,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   emptyStateTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   emptyStateSubtitle: {
-    fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 24,
   },

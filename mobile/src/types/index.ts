@@ -18,3 +18,9 @@ export type RootTabParamList = {
   Scan: undefined;
   Profile: undefined;
 };
+
+export type RootStackParamList = {
+  Auth: undefined;
+  MainTabs: undefined;
+  ReceiptDetail: { purchase: Purchase };
+};

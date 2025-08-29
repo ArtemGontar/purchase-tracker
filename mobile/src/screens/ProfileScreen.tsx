@@ -1,27 +1,51 @@
 import React, { useState } from 'react';
 import { 
   View, 
-  Text, 
   StyleSheet, 
   TouchableOpacity, 
   Switch, 
-  Alert 
+  Alert,
+  ScrollView
 } from 'react-native';
+import Animated, { FadeInUp, FadeInDown, SlideInRight } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { Text } from '../components/ui/text';
+import { Card, CardContent, CardHeader } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { RootStackParamList } from '../types';
+import { colors, spacing, shadows } from '../lib/utils';
+import { ReceepHaptics } from '../lib/haptics';
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 export const ProfileScreen: React.FC = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const navigation = useNavigation<NavigationProp>();
+
+  const handleNotificationToggle = (value: boolean) => {
+    ReceepHaptics.light();
+    setNotificationsEnabled(value);
+  };
 
   const handleLogout = () => {
+    ReceepHaptics.warning();
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Cancel', 
+          style: 'cancel',
+          onPress: () => ReceepHaptics.light()
+        },
         { 
           text: 'Logout', 
           style: 'destructive',
           onPress: () => {
-            Alert.alert('Logged out', 'You have been logged out successfully.');
+            ReceepHaptics.success();
+            // Navigate back to Auth screen
+            navigation.navigate('Auth');
           }
         }
       ]
@@ -29,148 +53,227 @@ export const ProfileScreen: React.FC = () => {
   };
 
   const handleAbout = () => {
+    ReceepHaptics.light();
     Alert.alert(
-      'About Purchase Tracker',
-      'Version 1.0.0\n\nA simple app to track your purchases by scanning receipts.\n\nBuilt with React Native & Expo.',
-      [{ text: 'OK' }]
+      'About Receep',
+      'Version 1.0.0\n\nA beautiful app to track your purchases by scanning receipts.\n\nBuilt with React Native, Expo & lots of ❤️',
+      [{ 
+        text: 'OK',
+        onPress: () => ReceepHaptics.light()
+      }]
     );
   };
 
+  const handleSettingPress = (setting: string) => {
+    ReceepHaptics.selection();
+    // Handle different settings navigation
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.profileSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>JD</Text>
-        </View>
-        <Text style={styles.userName}>John Doe</Text>
-        <Text style={styles.userEmail}>john.doe@example.com</Text>
-      </View>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Profile Header */}
+      <Animated.View 
+        entering={FadeInDown.delay(200).springify()}
+        style={styles.profileSection}
+      >
+        <Animated.View 
+          entering={FadeInUp.delay(400).springify()}
+          style={styles.avatar}
+        >
+          <Text size="2xl" weight="bold" style={styles.avatarText}>
+            JD
+          </Text>
+        </Animated.View>
+        <Text size="xl" weight="bold" style={styles.userName}>
+          John Doe
+        </Text>
+        <Text variant="muted" style={styles.userEmail}>
+          john.doe@example.com
+        </Text>
+      </Animated.View>
 
-      <View style={styles.settingsSection}>
-        <Text style={styles.sectionTitle}>Settings</Text>
-        
-        <View style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Push Notifications</Text>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={notificationsEnabled ? '#2196F3' : '#f4f3f4'}
-          />
-        </View>
+      {/* Settings Section */}
+      <Animated.View entering={FadeInUp.delay(600).springify()}>
+        <Card style={styles.settingsCard}>
+          <CardHeader>
+            <Text size="lg" weight="semibold">Settings</Text>
+          </CardHeader>
+          <CardContent style={styles.settingsContent}>
+            <Animated.View entering={SlideInRight.delay(700).springify()}>
+              <TouchableOpacity 
+                style={styles.settingItem}
+                onPress={() => handleSettingPress('notifications')}
+                activeOpacity={0.7}
+              >
+                <Text size="default" style={styles.settingLabel}>
+                  Push Notifications
+                </Text>
+                <Switch
+                  value={notificationsEnabled}
+                  onValueChange={handleNotificationToggle}
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor={colors.white}
+                  ios_backgroundColor={colors.border}
+                />
+              </TouchableOpacity>
+            </Animated.View>
 
-        <TouchableOpacity style={styles.settingItem} onPress={handleAbout}>
-          <Text style={styles.settingLabel}>About</Text>
-          <Text style={styles.settingValue}>v1.0.0</Text>
-        </TouchableOpacity>
-      </View>
+            <Animated.View entering={SlideInRight.delay(800).springify()}>
+              <TouchableOpacity 
+                style={styles.settingItem} 
+                onPress={handleAbout}
+                activeOpacity={0.7}
+              >
+                <Text size="default" style={styles.settingLabel}>
+                  About
+                </Text>
+                <Text variant="muted" style={styles.settingValue}>
+                  v1.0.0
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
 
-      <View style={styles.actionsSection}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
+            <Animated.View entering={SlideInRight.delay(900).springify()}>
+              <TouchableOpacity 
+                style={styles.settingItem} 
+                onPress={() => handleSettingPress('export')}
+                activeOpacity={0.7}
+              >
+                <Text size="default" style={styles.settingLabel}>
+                  Export Data
+                </Text>
+                <Text variant="muted" style={styles.settingArrow}>
+                  →
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Purchase Tracker MVP</Text>
-        <Text style={styles.footerSubtext}>Made with ❤️ using React Native</Text>
-      </View>
-    </View>
+            <Animated.View entering={SlideInRight.delay(1000).springify()}>
+              <TouchableOpacity 
+                style={[styles.settingItem, styles.lastSettingItem]} 
+                onPress={() => handleSettingPress('help')}
+                activeOpacity={0.7}
+              >
+                <Text size="default" style={styles.settingLabel}>
+                  Help & Support
+                </Text>
+                <Text variant="muted" style={styles.settingArrow}>
+                  →
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </CardContent>
+        </Card>
+      </Animated.View>
+
+      {/* Actions Section */}
+      <Animated.View 
+        entering={FadeInUp.delay(1100).springify()}
+        style={styles.actionsSection}
+      >
+        <Button
+          variant="destructive"
+          onPress={handleLogout}
+          style={styles.logoutButton}
+        >
+          Logout
+        </Button>
+      </Animated.View>
+
+      {/* Footer */}
+      <Animated.View 
+        entering={FadeInUp.delay(1200).springify()}
+        style={styles.footer}
+      >
+        <Text variant="muted" size="sm" style={styles.footerText}>
+          Receep - Receipt Tracker
+        </Text>
+        <Text variant="muted" size="xs" style={styles.footerSubtext}>
+          Made with ❤️ using React Native & Expo
+        </Text>
+      </Animated.View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
   profileSection: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     alignItems: 'center',
-    paddingVertical: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+    ...shadows.sm,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#2196F3',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
+    ...shadows.md,
   },
   avatarText: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: 'bold',
+    color: colors.white,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
   },
   userEmail: {
-    fontSize: 16,
-    color: '#666',
+    textAlign: 'center',
   },
-  settingsSection: {
-    backgroundColor: '#fff',
-    marginTop: 20,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+  settingsCard: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
+  settingsContent: {
+    paddingTop: 0,
   },
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.border,
+  },
+  lastSettingItem: {
+    borderBottomWidth: 0,
   },
   settingLabel: {
-    fontSize: 16,
-    color: '#333',
+    color: colors.text,
   },
   settingValue: {
-    fontSize: 16,
-    color: '#666',
+    color: colors.textMuted,
+  },
+  settingArrow: {
+    fontSize: 18,
+    color: colors.textMuted,
   },
   actionsSection: {
-    marginTop: 40,
-    paddingHorizontal: 20,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.xl,
   },
   logoutButton: {
-    backgroundColor: '#f44336',
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    ...shadows.md,
   },
   footer: {
-    flex: 1,
-    justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingBottom: 40,
+    paddingBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
   footerText: {
-    fontSize: 14,
-    color: '#999',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
   },
   footerSubtext: {
-    fontSize: 12,
-    color: '#ccc',
+    textAlign: 'center',
   },
 });
