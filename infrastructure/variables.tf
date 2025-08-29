@@ -36,56 +36,17 @@ variable "domain_name" {
 }
 
 # Database Configuration
-variable "db_name" {
-  description = "Database name"
+# DynamoDB Configuration
+variable "dynamodb_table_prefix" {
+  description = "Prefix for DynamoDB table names"
   type        = string
-  default     = "purchase_tracker"
+  default     = "purchase-tracker"
   
   validation {
-    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_]*$", var.db_name))
-    error_message = "Database name must start with a letter and contain only alphanumeric characters and underscores."
+    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9-_]*$", var.dynamodb_table_prefix))
+    error_message = "DynamoDB table prefix must start with a letter and contain only alphanumeric characters, hyphens, and underscores."
   }
 }
-
-variable "db_username" {
-  description = "Database master username"
-  type        = string
-  default     = "ptadmin"
-  
-  validation {
-    condition     = length(var.db_username) >= 3 && length(var.db_username) <= 16
-    error_message = "Database username must be between 3 and 16 characters."
-  }
-}
-
-variable "db_password" {
-  description = "Database master password"
-  type        = string
-  sensitive   = true
-  
-  validation {
-    condition     = length(var.db_password) >= 8
-    error_message = "Database password must be at least 8 characters long."
-  }
-}
-
-variable "db_instance_class" {
-  description = "RDS instance class"
-  type        = string
-  default     = "db.t3.micro"  # Free tier eligible
-}
-
-variable "db_allocated_storage" {
-  description = "RDS allocated storage in GB"
-  type        = number
-  default     = 20  # Free tier: up to 20 GB
-  
-  validation {
-    condition     = var.db_allocated_storage >= 20 && var.db_allocated_storage <= 20
-    error_message = "Free tier allows up to 20 GB of storage."
-  }
-}
-
 # S3 Configuration
 variable "s3_bucket_name" {
   description = "S3 bucket name (will have random suffix added)"

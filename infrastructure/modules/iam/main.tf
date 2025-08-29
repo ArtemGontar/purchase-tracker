@@ -58,6 +58,21 @@ resource "aws_iam_role_policy" "backend_service" {
         ]
         Resource = "*"
       },
+      # DynamoDB access
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:BatchGetItem",
+          "dynamodb:BatchWriteItem"
+        ]
+        Resource = var.dynamodb_table_arns
+      },
       # Cognito access for user verification
       {
         Effect = "Allow"

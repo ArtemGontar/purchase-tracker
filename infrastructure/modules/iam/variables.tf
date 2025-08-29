@@ -18,6 +18,11 @@ variable "cognito_user_pool_arn" {
   type        = string
 }
 
+variable "dynamodb_table_arns" {
+  description = "List of DynamoDB table ARNs for IAM policies"
+  type        = list(string)
+}
+
 variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)

@@ -65,18 +65,13 @@ module "s3" {
   tags         = var.tags
 }
 
-module "rds" {
-  source = "./modules/rds"
+module "dynamodb" {
+  source = "./modules/dynamodb"
   
-  project_name        = var.project_name
-  environment         = var.environment
-  db_name            = var.db_name
-  db_username        = var.db_username
-  db_password        = var.db_password
-  vpc_id             = data.aws_vpc.default.id
-  subnet_ids         = data.aws_subnets.default.ids
-  availability_zones = data.aws_availability_zones.available.names
-  tags               = var.tags
+  project_name = var.project_name
+  environment  = var.environment
+  table_prefix = var.dynamodb_table_prefix
+  tags         = var.tags
 }
 
 module "iam" {
@@ -86,6 +81,7 @@ module "iam" {
   environment           = var.environment
   s3_bucket_arn         = module.s3.bucket_arn
   cognito_user_pool_arn = module.cognito.user_pool_arn
+  dynamodb_table_arns   = module.dynamodb.table_arns
   tags                  = var.tags
 }
 

@@ -52,21 +52,20 @@ output "s3_bucket_regional_domain_name" {
   value       = module.s3.bucket_regional_domain_name
 }
 
-# RDS Outputs
-output "rds_endpoint" {
-  description = "RDS instance endpoint"
-  value       = module.rds.db_instance_endpoint
-  sensitive   = true
+# DynamoDB Outputs
+output "dynamodb_users_table_name" {
+  description = "Name of the users DynamoDB table"
+  value       = module.dynamodb.users_table_name
 }
 
-output "rds_port" {
-  description = "RDS instance port"
-  value       = module.rds.db_instance_port
+output "dynamodb_receipts_table_name" {
+  description = "Name of the receipts DynamoDB table"
+  value       = module.dynamodb.receipts_table_name
 }
 
-output "rds_database_name" {
-  description = "RDS database name"
-  value       = module.rds.db_instance_name
+output "dynamodb_purchases_table_name" {
+  description = "Name of the purchases DynamoDB table"
+  value       = module.dynamodb.purchases_table_name
 }
 
 output "rds_username" {

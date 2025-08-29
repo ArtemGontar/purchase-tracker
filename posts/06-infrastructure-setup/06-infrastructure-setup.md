@@ -46,22 +46,20 @@ tofu apply
 
 It's like switching from Pepsi to Coke, except both taste exactly the same and one doesn't randomly change its recipe and charge you for it.
 
-## The AWS Free Tier: Your New Best Friend 💰
 
-AWS Free Tier is like that friend who always pays for pizza — generous, reliable, and makes everything better. Here's what we get to play with:
+## AWS Free Plan Update (2025): What You Need to Know 💰
 
-**First 12 Months Free:**
-- **EC2:** 750 hours of t2.micro (basically a tiny computer)
-- **RDS:** 750 hours of t2.micro + 20 GB storage (a tiny database)
-- **S3:** 5 GB storage + 20,000 reads + 2,000 writes (file storage that doesn't suck)
-- **Data Transfer:** 15 GB out (for when your app gets popular)
+As of **July 15, 2025**, AWS introduced a new Free Plan policy for new accounts. Instead of the old 12-month free tier, new users now get a credit-based plan with a 6-month window and some service restrictions. Always-free services remain available for everyone.
 
-**Always Free (Forever):**
-- **Cognito:** 50,000 monthly active users (authentication without tears)
-- **Lambda:** 1 million requests (serverless magic)
-- **DynamoDB:** 25 GB storage (NoSQL for days)
+For this project, the following AWS services are always-free (within their limits):
 
-**Translation:** You can build a real app that serves real users without spending real money. 🎯
+- **AWS Lambda:** 1 million requests + 400,000 GB-seconds/month
+- **Amazon S3:** 5 GB Standard storage
+- **Amazon DynamoDB:** 25 GB storage + 25 read/write capacity units
+- **Amazon CloudFront:** 1 TB data out + 10 million requests/month
+- **Amazon SNS:** 1 million publishes/month
+
+If you need more resources or want to avoid account closure after 6 months, consider upgrading to a paid plan. For legacy accounts (created before July 15, 2025), the old 12-month free tier still applies.
 
 ## Our Infrastructure: The Dream Team Assembly 🦸‍♀️
 
@@ -78,7 +76,7 @@ We're building the Avengers of cloud infrastructure:
     ↓ "I'll keep that safe!"
 👁️ Textract (OCR Magic)
     ↓ "I can read that!"
-🗄️ PostgreSQL (Database)
+🗄️ DynamoDB (Database)
     ↓ "I'll remember everything!"
 ```
 
@@ -96,7 +94,7 @@ infrastructure/
 ├── modules/            # Specialized districts
 │   ├── cognito/       # Authentication district
 │   ├── s3/            # Storage district
-│   ├── rds/           # Database district
+│   ├── dynamodb/      # Database district
 │   └── iam/           # Security district
 └── scripts/           # The maintenance crew
     ├── setup.sh       # "Build the city"
@@ -144,15 +142,13 @@ module "s3" {
   tags         = var.tags
 }
 
-# RDS for data persistence (because data matters)
-module "rds" {
-  source = "./modules/rds"
+# DynamoDB for data persistence (because data matters, and JSON is life)
+module "dynamodb" {
+  source = "./modules/dynamodb"
   
   project_name = var.project_name
   environment  = var.environment
-  db_name      = var.db_name
-  db_username  = var.db_username
-  db_password  = var.db_password
+  table_prefix = var.dynamodb_table_prefix
   tags         = var.tags
 }
 ```
@@ -284,44 +280,90 @@ resource "aws_s3_bucket_lifecycle_configuration" "receipts" {
 - Lifecycle management ✅
 - Public access control ✅
 
-## RDS Module: Database That Scales (Within Budget) 🗄️
+## DynamoDB Module: Database That Scales (And Costs Nothing to Start) 🗄️
 
-PostgreSQL in the cloud is like having a database administrator who never sleeps, never calls in sick, and automatically handles backups:
+DynamoDB is like having a filing cabinet that magically expands when you need more space, reorganizes itself for optimal performance, and costs virtually nothing until you're processing millions of receipts:
 
 ```hcl
-# modules/rds/main.tf
-resource "aws_db_instance" "main" {
-  # Free tier optimized
-  instance_class       = "db.t3.micro"  # Free for 750 hours/month
-  allocated_storage    = 20             # Free tier maximum
-  storage_type         = "gp2"          # General Purpose SSD
-  
-  # PostgreSQL (because it's awesome)
-  engine         = "postgres"
-  engine_version = "15.7"
-  
-  # Database configuration
-  db_name  = var.db_name
-  username = var.db_username
-  password = var.db_password
+# modules/dynamodb/main.tf
+resource "aws_dynamodb_table" "users" {
+  name           = "${var.table_prefix}-users"
+  billing_mode   = "PAY_PER_REQUEST"  # Pay only for what you use
+  hash_key       = "id"
 
-  # Security (because hackers are real)
-  vpc_security_group_ids = [aws_security_group.rds.id]
-  publicly_accessible    = false
+  attribute {
+    name = "id"
+    type = "S"
+  }
 
-  # Backups (because disasters happen)
-  backup_retention_period = 7
-  backup_window          = "03:00-04:00"
-  
-  # No Multi-AZ (not free tier eligible)
-  multi_az = false
+  attribute {
+    name = "cognitoId"
+    type = "S"
+  }
 
-  # Delete protection (comment out for dev)
-  deletion_protection = false
-  skip_final_snapshot = true
+  global_secondary_index {
+    name     = "CognitoIdIndex"
+    hash_key = "cognitoId"
+  }
+
+  tags = var.tags
 }
 
-# Security group (the bouncer for your database)
+resource "aws_dynamodb_table" "receipts" {
+  name           = "${var.table_prefix}-receipts"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name     = "UserIdIndex"
+    hash_key = "userId"
+    range_key = "createdAt"
+  }
+
+  tags = var.tags
+}
+
+resource "aws_dynamodb_table" "purchases" {
+  name           = "${var.table_prefix}-purchases"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name     = "UserIdIndex"
+    hash_key = "userId"
+    range_key = "purchaseDate"
+  }
+
+  tags = var.tags
+}
+```
+
+**DynamoDB features that make you smile:**
+- **Serverless** — No database servers to manage ✅
+- **Auto-scaling** — Handles traffic spikes automatically ✅
+- **JSON native** — Perfect for variable receipt structures ✅
+- **Fast queries** — Single-digit millisecond latency ✅
+- **Free tier friendly** — 25 GB storage, 25 RCU/WCU ✅
 resource "aws_security_group" "rds" {
   name_prefix = "${var.project_name}-rds-"
   
@@ -516,7 +558,7 @@ Do you want to proceed with deployment? (yes/no): yes
 🚀 Deploying infrastructure...
 ✅ Cognito User Pool created
 ✅ S3 bucket created
-✅ RDS instance launching...
+✅ DynamoDB tables created
 ✅ IAM roles configured
 ✅ CloudWatch alarms set
 
@@ -526,7 +568,7 @@ Do you want to proceed with deployment? (yes/no): yes
 Important outputs:
 - Cognito User Pool ID: us-east-1_AbCdEfGhI
 - S3 Bucket: purchase-tracker-receipts-dev-1a2b3c4d
-- RDS Endpoint: purchase-tracker-dev.abc123.us-east-1.rds.amazonaws.com
+- DynamoDB Tables: purchase-tracker-dev-users, purchase-tracker-dev-receipts, purchase-tracker-dev-purchases
 
 Next steps:
 1. Update your backend with new configuration
@@ -560,11 +602,11 @@ Our infrastructure gives us:
 - 5 GB capacity
 
 **🗄️ Database System**
-- Managed PostgreSQL
-- Automatic backups
-- Security groups
+- Managed DynamoDB
+- Automatic scaling
+- Global secondary indexes
 - CloudWatch monitoring
-- 20 GB storage
+- 25 GB storage
 
 **🔍 OCR Processing**
 - Receipt text extraction
@@ -583,20 +625,20 @@ Our infrastructure gives us:
 What happens after 12 months? Don't panic — the costs are surprisingly reasonable:
 
 **Post-free-tier costs (estimated):**
-- **RDS t3.micro:** ~$15/month
+- **DynamoDB:** ~$1-5/month (for moderate usage)
 - **S3 storage:** ~$1/month (for 20 GB)
 - **Data transfer:** ~$1/month (for moderate usage)
 - **Cognito:** Still free! (up to 50K MAU)
 - **Lambda:** Still free! (1M requests)
 
-**Total:** ~$17/month for a production-ready application 💸
+**Total:** ~$3-7/month for a production-ready application 💸
 
 **Scaling strategies:**
-- Use RDS read replicas for read-heavy workloads
-- Implement S3 lifecycle policies for old data
+- Use DynamoDB on-demand billing for variable workloads
+- Implement data archiving for old receipts to reduce storage costs
 - Add CloudFront CDN for global performance
 - Use Lambda for background processing
-- Consider Aurora Serverless for variable workloads
+- Consider DynamoDB Global Tables for multi-region deployment
 
 ## Troubleshooting: When Things Go Sideways 🛠️
 
@@ -611,9 +653,9 @@ s3_bucket_name = "purchase-tracker-receipts-${random_id.suffix.hex}"
 
 **"Database connection failed"**
 ```bash
-# Check security groups allow database access
-# Verify the connection string format
-# Ensure the database is in the same VPC as your application
+# Check DynamoDB table exists and you have correct permissions
+# Verify AWS credentials are configured properly
+# Ensure table names match your configuration
 ```
 
 **"Exceeded free tier limits"**
@@ -658,7 +700,7 @@ Got questions about the setup? Want to share your deployment success stories? Dr
 
 ---
 
-**Stack:** OpenTofu, AWS Free Tier, Cognito, S3, RDS, CloudWatch  
-**Cost:** $0/month (first 12 months), ~$17/month after  
+**Stack:** OpenTofu, AWS Free Tier, Cognito, S3, DynamoDB, CloudWatch  
+**Cost:** $0/month (first 12 months), ~$3-7/month after  
 **Deployment Time:** 5-10 minutes  
 **Developer Sanity:** Fully preserved 🧠✨

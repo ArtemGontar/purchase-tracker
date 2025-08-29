@@ -11,10 +11,8 @@ aws_region   = "us-east-1"
 app_name = "Purchase Tracker"
 # domain_name = "your-domain.com"  # Optional: uncomment for custom domain
 
-# Database Configuration (CHANGE THESE!)
-db_name     = "purchase_tracker"
-db_username = "ptadmin"
-db_password = "YourSecurePassword123!"  # CHANGE THIS TO A SECURE PASSWORD
+# Database Configuration
+dynamodb_table_prefix = "purchase-tracker-dev"
 
 # S3 Configuration
 s3_bucket_name = "purchase-tracker-receipts-dev"  # Will have random suffix added

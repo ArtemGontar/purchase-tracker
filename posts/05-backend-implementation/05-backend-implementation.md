@@ -16,7 +16,7 @@ Let's be honest: context switching between languages is like changing from qwert
 **Our stack is basically the Avengers of backend development:**
 - **Node.js + Express** 🕷️ — The web-slinging framework
 - **AWS Cognito** 🛡️ — The authentication superhero
-- **PostgreSQL + Prisma** 🗄️ — The database dream team
+- **DynamoDB** 🗄️ — The NoSQL database that scales
 - **AWS S3 + Textract** ☁️ — The cloud computing muscle
 - **Jest + Supertest** 🧪 — The testing squad
 
@@ -30,7 +30,7 @@ Backend (Node.js/Express)
 ├── 🔐 AWS Cognito (Who are you?)
 ├── 📸 AWS S3 (Store that image!)
 ├── 👁️ Textract (What does it say?)
-└── 🗄️ PostgreSQL (Remember everything!)
+└── 🗄️ DynamoDB (Remember everything!)
 ```
 
 It's like a well-oiled machine, except instead of oil, we use coffee and Stack Overflow.
@@ -46,8 +46,8 @@ npm init -y
 
 # Install the essentials (aka the good stuff)
 npm install express cors helmet morgan dotenv joi multer
-npm install @aws-sdk/client-s3 @aws-sdk/client-textract aws-jwt-verify
-npm install prisma @prisma/client
+npm install @aws-sdk/client-s3 @aws-sdk/client-textract @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
+npm install aws-jwt-verify
 
 # Dev dependencies (because we're not monsters)
 npm install -D nodemon jest supertest eslint prettier
@@ -235,63 +235,48 @@ class TextractService {
 
 **Pro tip:** Receipt OCR is like dating — sometimes it works perfectly, sometimes you get weird results, and sometimes you just have to laugh and try again.
 
-## Database: PostgreSQL + Prisma = Developer Happiness 😊
+## Database: DynamoDB = Developer Happiness + Scalability 😊
 
-Prisma is like having a really smart translator between your JavaScript and your database. No more SQL typos at 2 AM:
+DynamoDB is like having a really smart assistant who organizes your documents exactly how you need them, scales automatically when you get busy, and costs basically nothing when you're starting out:
 
-```prisma
-// prisma/schema.prisma
-model User {
-  id        String   @id @default(cuid())
-  cognitoId String   @unique  // Link to Cognito
-  email     String   @unique
-  firstName String?
-  lastName  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  purchases Purchase[]
-  receipts  Receipt[]
-}
+```javascript
+// src/models/Receipt.js - Look how clean this is!
+class Receipt {
+  constructor(data) {
+    this.id = data.id || uuidv4();
+    this.userId = data.userId;
+    this.originalName = data.originalName;
+    this.s3Key = data.s3Key;
+    this.s3Url = data.s3Url;
+    this.textractData = data.textractData || null; // Raw OCR JSON
+    this.processed = data.processed || false;
+    this.merchantName = data.merchantName || null;
+    this.totalAmount = data.totalAmount || null;
+    this.receiptDate = data.receiptDate || null;
+    this.items = data.items || []; // Flexible array structure
+    this.confidence = data.confidence || null;
+    this.createdAt = data.createdAt || new Date().toISOString();
+    this.updatedAt = data.updatedAt || new Date().toISOString();
+  }
 
-model Purchase {
-  id          String   @id @default(cuid())
-  title       String
-  amount      Float
-  currency    String   @default("USD")
-  category    String?
-  description String?
-  purchaseDate DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  receiptId String?   @unique
-  receipt   Receipt?  @relation(fields: [receiptId], references: [id])
-}
+  async save() {
+    this.updatedAt = new Date().toISOString();
+    await dynamoDBService.put(Receipt.tableName, this.toJSON());
+    return this;
+  }
 
-model Receipt {
-  id           String   @id @default(cuid())
-  originalName String
-  s3Key        String   @unique
-  s3Url        String
-  textractData Json?    // Store that OCR magic
-  processed    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  userId   String
-  user     User      @relation(fields: [userId], references: [id])
-  purchase Purchase?
+  static async findByUserId(userId) {
+    return await dynamoDBService.queryByUserId(Receipt.tableName, userId);
+  }
 }
 ```
 
-**What makes this schema special:**
-- **Relationships that make sense** (receipts belong to users, purchases can link to receipts)
-- **Flexible JSON storage** for Textract data
-- **Timestamps everywhere** (because time travel debugging is helpful)
-- **Optional fields** (not every purchase needs a category, Karen)
+**Why DynamoDB is perfect for receipts:**
+- **Variable structures** — Every store formats receipts differently
+- **JSON-friendly** — Store Textract results as-is, no schema migration needed
+- **Fast queries** — Get all user receipts in milliseconds
+- **Auto-scaling** — Handles Black Friday traffic without breaking a sweat
+- **Cost-effective** — 25 GB free, then pennies per GB
 
 ## API Routes: RESTful and Proud 🛣️
 
@@ -439,10 +424,10 @@ Getting your backend from "works on my machine" to "works everywhere" is like te
 ```env
 NODE_ENV=production
 PORT=3000
-DATABASE_URL=your-production-db-url
 AWS_COGNITO_USER_POOL_ID=us-east-1_xxxxxxxxx
 AWS_COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 AWS_S3_BUCKET=purchase-tracker-receipts-prod
+DYNAMODB_TABLE_PREFIX=purchase-tracker-prod
 ```
 
 ## The Complete Recipe: What We Built 🍰
@@ -450,7 +435,7 @@ AWS_S3_BUCKET=purchase-tracker-receipts-prod
 **Ingredients:**
 - 1 Node.js backend (with Express seasoning)
 - 1 AWS Cognito auth layer (no password headaches)
-- 1 PostgreSQL database (with Prisma ORM magic)
+- 1 DynamoDB database (with flexible JSON magic)
 - 1 S3 bucket (for file storage dreams)
 - 1 Textract service (OCR superpowers)
 - A pinch of error handling (because Murphy's Law)
@@ -482,12 +467,12 @@ We've built a backend that:
 - **Maintainable** (future-you will thank current-you)
 - **Fast** (because nobody likes waiting)
 
-**TL;DR:** Node.js + AWS Cognito + S3 + Textract + PostgreSQL = Backend that makes you look like a rockstar developer 🎸
+**TL;DR:** Node.js + AWS Cognito + S3 + Textract + DynamoDB = Backend that makes you look like a rockstar developer 🎸
 
 Got war stories about backends? Questions about the implementation? Drop them in the comments — I promise to respond faster than a database query with proper indexing!
 
 ---
 
-**Stack:** Node.js, Express, AWS Cognito, S3, Textract, PostgreSQL, Prisma, Jest
+**Stack:** Node.js, Express, AWS Cognito, S3, Textract, DynamoDB, Jest
 
 **Architecture:** RESTful API with JWT auth, file upload processing, OCR integration, and all the good practices your senior developer keeps nagging about. 🚀
