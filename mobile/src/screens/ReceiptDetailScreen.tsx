@@ -13,9 +13,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 
-import { Text } from '../components/ui/text';
-import { Card, CardContent, CardHeader } from '../components/ui/card';
-import { Button } from '../components/ui/button';
+import { Text, Card, CardContent, CardHeader, Button } from '../components/ui';
 import { Purchase, RootStackParamList } from '../types';
 import { colors, spacing, shadows } from '../lib/utils';
 import { ReceepHaptics } from '../lib/haptics';

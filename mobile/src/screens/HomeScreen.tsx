@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { PurchaseCard } from '../components/PurchaseCard';
-import { Text } from '../components/ui/text';
+import { Text } from '../components/ui';
 import { Purchase } from '../types';
 import { fetchPurchases } from '../services/mockData';
 import { colors, spacing } from '../lib/utils';

@@ -10,9 +10,7 @@ import {
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Text } from '../components/ui/text';
-import { Card, CardContent, CardHeader } from '../components/ui/card';
-import { Button } from '../components/ui/button';
+import { Text, Card, CardContent, CardHeader, Button } from '../components/ui';
 import { RootStackParamList } from '../types';
 import { colors, spacing, shadows } from '../lib/utils';
 import { ReceepHaptics } from '../lib/haptics';

@@ -8,8 +8,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Purchase, RootStackParamList } from '../types';
-import { Card, CardContent, CardHeader } from './ui/card';
-import { Text } from './ui/text';
+import { Card, CardContent, CardHeader, Text } from './ui';
 import { colors, spacing, shadows, borderRadius } from '../lib/utils';
 import { ReceepHaptics } from '../lib/haptics';
 

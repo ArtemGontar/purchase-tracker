@@ -10,8 +10,7 @@ import Animated, {
   FadeIn,
   SlideInDown
 } from 'react-native-reanimated';
-import { Text } from './ui/text';
-import { Button } from './ui/button';
+import { Button, Text } from './ui';
 import { colors, spacing, shadows } from '../lib/utils';
 import { ReceepHaptics } from '../lib/haptics';
 

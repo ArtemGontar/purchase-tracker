@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
   },
   // Variants
   variant_default: {
-    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -77,8 +76,8 @@ const styles = StyleSheet.create({
   // Layout components
   header: {
     flexDirection: 'column',
-    gap: spacing.xs,
     padding: spacing.md,
+    paddingBottom: spacing.xs,
   },
   title: {
     // Title styles handled by Text component
