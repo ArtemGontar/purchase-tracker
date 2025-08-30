@@ -142,9 +142,7 @@ export const AuthScreen: React.FC = () => {
                 >
                   <View style={styles.oauthButtonContent}>
                     <Ionicons name="logo-apple" size={20} color={colors.white} />
-                    <Text weight="medium" style={styles.appleButtonText}>
-                      Continue with Apple
-                    </Text>
+                    <Text weight="medium" style={styles.appleButtonText}>Continue with Apple</Text>
                   </View>
                 </Button>
               </View>
@@ -168,9 +166,7 @@ export const AuthScreen: React.FC = () => {
             >
               <View style={styles.emailButtonContent}>
                 <Ionicons name="mail-outline" size={18} color={colors.textMuted} />
-                <Text weight="medium" style={styles.emailButtonText}>
-                  {isSignUp ? 'Sign up with Email' : 'Sign in with Email'}
-                </Text>
+                <Text weight="medium" style={styles.emailButtonText}>{isSignUp ? 'Sign up with Email' : 'Sign in with Email'}</Text>
               </View>
             </Button>
 
